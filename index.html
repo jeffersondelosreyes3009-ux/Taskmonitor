@@ -59,14 +59,22 @@
             background: #ffffff;
             color: var(--primary);
             border: none;
-            padding: 8px 14px;
+            padding: 10px 16px;
             border-radius: 6px;
             font-size: 0.85rem;
             font-weight: 700;
             cursor: pointer;
+            transition: transform 0.1s;
         }
 
-        .btn-notif.enabled { background: #dcfce7; color: #166534; }
+        .btn-notif:active {
+            transform: scale(0.97);
+        }
+
+        .btn-notif.enabled {
+            background: #dcfce7;
+            color: #166534;
+        }
 
         .stats-grid {
             display: grid;
@@ -187,10 +195,10 @@
         <h1>Academic Task & Deadline Monitoring System</h1>
         <p>Beleng National High School • Senior High School Task Tracker</p>
         <div class="notif-bar">
-            <button id="enableNotifBtn" class="btn-notif" onclick="requestNotificationPermission()">
+            <button type="button" id="enableNotifBtn" class="btn-notif">
                 🔔 Enable Phone Notifications
             </button>
-            <button class="btn-notif" onclick="sendTestNotification()">
+            <button type="button" id="testNotifBtn" class="btn-notif">
                 📲 Test Lock Screen Alert
             </button>
         </div>
@@ -245,42 +253,32 @@
 
 <script>
     let tasks = JSON.parse(localStorage.getItem('bnhs_academic_tasks')) || [];
-    let swRegistration = null;
 
-    // Register external sw.js for GitHub Pages
+    // Register Service Worker
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', async () => {
-            try {
-                swRegistration = await navigator.serviceWorker.register('./sw.js');
-            } catch (err) {
-                console.log('Service Worker Error:', err);
-            }
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW Error:', err));
         });
     }
 
-    async function requestNotificationPermission() {
+    const enableNotifBtn = document.getElementById('enableNotifBtn');
+    const testNotifBtn = document.getElementById('testNotifBtn');
+
+    enableNotifBtn.addEventListener('click', async () => {
         if (!('Notification' in window)) {
-            alert('Hindi sinusuportahan ng browser na ito ang notifications.');
+            alert('Hindi supported ang notifications sa browser na ito. Buksan ang link sa Google Chrome (Android) o i-Add to Home Screen muna sa Safari (iPhone).');
             return;
         }
-        const permission = await Notification.requestPermission();
-        updateNotifButton();
-        if (permission === 'granted') {
-            triggerSystemNotification(
-                'Notifications Enabled!',
-                'Makakatanggap ka na ng alert sa iyong notification bar at lock screen.'
-            );
-        } else {
-            alert('I-allow ang Notification sa browser settings para gumana ang alerts.');
-        }
-    }
 
-    function updateNotifButton() {
-        const btn = document.getElementById('enableNotifBtn');
-        if ('Notification' in window && Notification.permission === 'granted') {
-            btn.textContent = '✅ Notifications Active';
-            btn.classList.add('enabled');
-        }
-    }
+        try {
+            const permission = await Notification.requestPermission();
+            updateNotifButton();
 
-  
+            if (permission === 'granted') {
+                triggerSystemNotification(
+                    'Notifications Enabled!',
+                    'Makakatanggap ka na ng alert sa notification bar at lock screen.'
+                );
+            } else if (permission === 'denied') {
+                alert('Naka-block ang notifications. Pumunta sa Site Settings ng browser (lock icon sa address bar) at i-Allow ang Notifications.');
+    
