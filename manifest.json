@@ -1,0 +1,15 @@
+{
+  "name": "SHS Academic Task Monitor",
+  "short_name": "TaskMonitor",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f4f7f6",
+  "theme_color": "#1e3a8a",
+  "icons": [
+    {
+      "src": "https://flaticon.com",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
