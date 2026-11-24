@@ -1,8 +1,16 @@
-self.addEventListener('install', event => {
+self.addEventListener('install', (e) => {
   self.skipWaiting();
 });
 
-self.addEventListener('notificationclick', event => {
+self.addEventListener('activate', (e) => {
+  e.waitUntil(clients.claim());
+});
+
+self.addEventListener('fetch', (e) => {
+  e.respondWith(fetch(e.request).catch(() => new Response('Offline')));
+});
+
+self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  event.waitUntil(clients.openWindow('/'));
+  event.waitUntil(clients.openWindow('./index.html'));
 });
