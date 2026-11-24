@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#2563eb">
+    <link rel="manifest" href="manifest.json">
+    <title>Academic Task & Deadline Monitoring System</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --muted: #64748b;
+            --border: #e2e8f0;
+            --success: #16a34a;
+            --danger: #dc2626;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 16px;
+        }
+
+        .container { max-width: 960px; margin: 0 auto; }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: var(--primary);
+            color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        header h1 { font-size: 1.4rem; margin-bottom: 4px; }
+        header p { font-size: 0.85rem; opacity: 0.9; margin-bottom: 12px; }
+
+        .notif-bar {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-notif {
+            background: #ffffff;
+            color: var(--primary);
+            border: none;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-notif.enabled { background: #dcfce7; color: #166534; }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: var(--card);
+            padding: 14px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .stat-card h3 { font-size: 1.6rem; }
+        .stat-card span { font-size: 0.8rem; color: var(--muted); font-weight: 600; }
+        .stat-upcoming h3 { color: var(--primary); }
+        .stat-overdue h3 { color: var(--danger); }
+        .stat-completed h3 { color: var(--success); }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 18px;
+        }
+
+        @media (max-width: 768px) {
+            .main-grid { grid-template-columns: 1fr; }
+        }
+
+        .card {
+            background: var(--card);
+            padding: 18px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+
+        .card h2 {
+            font-size: 1.1rem;
+            margin-bottom: 14px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .form-group { margin-bottom: 12px; }
+        label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 4px; }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.95rem;
+        }
+
+        button.btn-primary {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+
+        .filters select { flex: 1; min-width: 130px; }
+        .task-list { display: flex; flex-direction: column; gap: 10px; }
+
+        .task-item {
+            border: 1px solid var(--border);
+            border-left: 5px solid var(--primary);
+            border-radius: 8px;
+            padding: 14px;
+            background: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .task-item.overdue { border-left-color: var(--danger); background: #fef2f2; }
+        .task-item.completed { border-left-color: var(--success); opacity: 0.75; }
+        .task-item.completed .task-title { text-decoration: line-through; }
+
+        .task-header { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; }
+        .badge { font-size: 0.75rem; padding: 2px 8px; border-radius: 999px; font-weight: 600; }
+        .badge-subject { background: #e0e7ff; color: #3730a3; }
+        .badge-upcoming { background: #dbeafe; color: #1e40af; }
+        .badge-overdue { background: #fee2e2; color: #991b1b; }
+        .badge-completed { background: #dcfce7; color: #166534; }
+
+        .task-title { font-weight: 700; font-size: 1rem; }
+        .task-desc { font-size: 0.85rem; color: var(--muted); margin-bottom: 6px; }
+        .task-deadline { font-size: 0.8rem; font-weight: 600; }
+
+        .task-actions { display: flex; flex-direction: column; gap: 6px; }
+        .btn-sm { padding: 6px 10px; font-size: 0.8rem; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; }
+        .btn-toggle { background: #e2e8f0; color: var(--text); }
+        .btn-delete { background: #fee2e2; color: var(--danger); }
+        .empty-state { text-align: center; padding: 24px; color: var(--muted); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Academic Task & Deadline Monitoring System</h1>
+        <p>Beleng National High School • Senior High School Task Tracker</p>
+        <div class="notif-bar">
+            <button id="enableNotifBtn" class="btn-notif" onclick="requestNotificationPermission()">
+                🔔 Enable Phone Notifications
+            </button>
+            <button class="btn-notif" onclick="sendTestNotification()">
+                📲 Test Lock Screen Alert
+            </button>
+        </div>
+    </header>
+
+    <div class="stats-grid">
+        <div class="stat-card"><h3 id="totalCount">0</h3><span>Total</span></div>
+        <div class="stat-card stat-upcoming"><h3 id="upcomingCount">0</h3><span>Upcoming</span></div>
+        <div class="stat-card stat-overdue"><h3 id="overdueCount">0</h3><span>Overdue</span></div>
+        <div class="stat-card stat-completed"><h3 id="completedCount">0</h3><span>Completed</span></div>
+    </div>
+
+    <div class="main-grid">
+        <div class="card">
+            <h2>Add Academic Task</h2>
+            <form id="taskForm">
+                <div class="form-group">
+                    <label for="taskTitle">Task Title *</label>
+                    <input type="text" id="taskTitle" placeholder="e.g., Research Chapter 1" required>
+                </div>
+                <div class="form-group">
+                    <label for="taskSubject">Subject *</label>
+                    <input type="text" id="taskSubject" placeholder="e.g., Practical Research 2" required>
+                </div>
+                <div class="form-group">
+                    <label for="taskDeadline">Deadline Date & Time *</label>
+                    <input type="datetime-local" id="taskDeadline" required>
+                </div>
+                <div class="form-group">
+                    <label for="taskDesc">Description</label>
+                    <textarea id="taskDesc" rows="2" placeholder="Optional details..."></textarea>
+                </div>
+                <button type="submit" class="btn-primary">+ Record Task</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>Task & Deadline Monitor</h2>
+            <div class="filters">
+                <select id="filterSubject"><option value="ALL">All Subjects</option></select>
+                <select id="filterStatus">
+                    <option value="ALL">All Status</option>
+                    <option value="UPCOMING">Upcoming</option>
+                    <option value="OVERDUE">Overdue</option>
+                    <option value="COMPLETED">Completed</option>
+                </select>
+            </div>
+            <div id="taskList" class="task-list"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let tasks = JSON.parse(localStorage.getItem('bnhs_academic_tasks')) || [];
+    let swRegistration = null;
+
+    // Register external sw.js for GitHub Pages
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', async () => {
+            try {
+                swRegistration = await navigator.serviceWorker.register('./sw.js');
+            } catch (err) {
+                console.log('Service Worker Error:', err);
+            }
+        });
+    }
+
+    async function requestNotificationPermission() {
+        if (!('Notification' in window)) {
+            alert('Hindi sinusuportahan ng browser na ito ang notifications.');
+            return;
+        }
+        const permission = await Notification.requestPermission();
+        updateNotifButton();
+        if (permission === 'granted') {
+            triggerSystemNotification(
+                'Notifications Enabled!',
+                'Makakatanggap ka na ng alert sa iyong notification bar at lock screen.'
+            );
+        } else {
+            alert('I-allow ang Notification sa browser settings para gumana ang alerts.');
+        }
+    }
+
+    function updateNotifButton() {
+        const btn = document.getElementById('enableNotifBtn');
+        if ('Notification' in window && Notification.permission === 'granted') {
+            btn.textContent = '✅ Notifications Active';
+            btn.classList.add('enabled');
+        }
+    }
+
+  
