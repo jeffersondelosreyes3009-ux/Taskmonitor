@@ -1,314 +1,185 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Academic Task & Deadline Monitor — Beleng NHS</title>
-  <meta name="theme-color" content="#1a66e5" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SHS Academic Task & Deadline Monitor</title>
   <style>
-    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { margin: 0; background-color: #f3f5f9; color: #1e293b; padding: 16px; }
-    .container { max-width: 600px; margin: 0 auto; }
-
-    /* Header */
-    .header {
-      background-color: #1a66e5;
-      color: white;
-      padding: 24px 16px;
-      border-radius: 16px;
-      text-align: center;
-      box-shadow: 0 4px 12px rgba(26, 102, 229, 0.2);
-    }
-    .header h1 { margin: 0 0 6px; font-size: 21px; line-height: 1.25; }
-    .header p { margin: 0; font-size: 13px; opacity: 0.92; }
-
-    /* Alert Bar */
-    .alert-bar {
-      background: #e8eef7;
-      padding: 12px 16px;
-      border-radius: 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin: 16px 0;
-      font-size: 13px;
-      gap: 10px;
-    }
-    .btn-primary {
-      background: #1a66e5;
-      color: white;
-      border: none;
-      padding: 11px 16px;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 14px;
-      cursor: pointer;
-      white-space: nowrap;
-      touch-action: manipulation;
-    }
-    .btn-primary:active { background: #1045a1; transform: scale(0.98); }
-
-    /* Stats Grid */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-    @media (min-width: 500px) {
-      .stats-grid { grid-template-columns: repeat(4, 1fr); }
-    }
-    .stat-card {
-      background: white;
-      padding: 16px 10px;
-      border-radius: 14px;
-      text-align: center;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
-      border-top: 4px solid #ccc;
-    }
-    .stat-card.blue { border-top-color: #1a66e5; }
-    .stat-card.orange { border-top-color: #f59e0b; }
-    .stat-card.red { border-top-color: #ef4444; }
-    .stat-card.green { border-top-color: #10b981; }
-    .stat-number { font-size: 26px; font-weight: bold; margin-bottom: 4px; }
-    .stat-label { font-size: 12px; color: #64748b; font-weight: 500; }
-
-    /* Cards & Form */
-    .card {
-      background: white;
-      padding: 16px;
-      border-radius: 14px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
-      margin-bottom: 16px;
-    }
-    .card h3 { margin: 0 0 12px; font-size: 16px; color: #1a66e5; }
-    label { display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px; }
-    input, select, textarea {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 12px;
-      border: 1px solid #cbd5e1;
-      border-radius: 8px;
-      font-size: 14px;
-      background: #fff;
-    }
-    textarea { resize: vertical; min-height: 60px; }
-    .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-
-    /* Filters */
-    .filter-bar {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 12px;
-    }
-
-    /* Task Items */
-    .task-item {
-      background: white;
-      padding: 14px;
-      border-radius: 12px;
-      margin-bottom: 10px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.04);
-      border-left: 5px solid #1a66e5;
-    }
-    .task-item.overdue { border-left-color: #ef4444; }
-    .task-item.upcoming { border-left-color: #f59e0b; }
-    .task-item.completed { border-left-color: #10b981; opacity: 0.75; }
-
-    .task-title { margin: 0; font-size: 15px; font-weight: 700; }
-    .completed .task-title { text-decoration: line-through; }
-    .badge {
-      display: inline-block;
-      font-size: 11px;
-      font-weight: 600;
-      padding: 3px 8px;
-      border-radius: 999px;
-      margin-top: 4px;
-      margin-right: 4px;
-    }
-    .badge-subject { background: #e0e7ff; color: #1e40af; }
-    .badge-strand { background: #f1f5f9; color: #334155; }
-    .badge-status-upcoming { background: #fef3c7; color: #92400e; }
-    .badge-status-overdue { background: #fee2e2; color: #991b1b; }
-    .badge-status-completed { background: #dcfce7; color: #166534; }
-
-    .task-desc { margin: 8px 0; font-size: 13px; color: #475569; }
-    .task-meta {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 10px;
-      padding-top: 8px;
-      border-top: 1px solid #f1f5f9;
-      font-size: 12px;
-      color: #64748b;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    .actions button {
-      border: none;
-      padding: 7px 10px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 12px;
-      font-weight: 600;
-      margin-left: 4px;
-    }
-    .btn-toggle { background: #dcfce7; color: #166534; }
-    .btn-undo { background: #fef3c7; color: #92400e; }
-    .btn-del { background: #fee2e2; color: #991b1b; }
-    .empty-state { text-align: center; padding: 24px; color: #64748b; font-size: 14px; }
-    .status-msg { font-size: 12px; color: #166534; font-weight: 600; margin-top: 6px; display: none; }
+    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
+    body { background-color: #f4f7f6; color: #333; padding: 15px; }
+    .container { max-width: 600px; margin: auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    h1 { font-size: 1.4rem; color: #1e3a8a; text-align: center; margin-bottom: 5px; }
+    p.subtitle { text-align: center; font-size: 0.85rem; color: #666; margin-bottom: 20px; }
+    .form-group { margin-bottom: 12px; }
+    label { display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 4px; }
+    input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95rem; }
+    button.btn-add { width: 100%; padding: 12px; background-color: #1e3a8a; color: white; border: none; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; margin-top: 5px; }
+    button.btn-add:hover { background-color: #172554; }
+    .filters { display: flex; gap: 6px; overflow-x: auto; margin: 20px 0 15px; padding-bottom: 5px; }
+    .filter-btn { padding: 8px 12px; border: 1px solid #1e3a8a; background: white; color: #1e3a8a; border-radius: 20px; font-size: 0.8rem; cursor: pointer; white-space: nowrap; }
+    .filter-btn.active { background: #1e3a8a; color: white; }
+    .task-card { border-left: 5px solid #2563eb; background: #f9fafb; padding: 12px; border-radius: 6px; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    .task-card.overdue { border-left-color: #dc2626; background: #fef2f2; }
+    .task-card.completed { border-left-color: #16a34a; opacity: 0.75; }
+    .task-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+    .subject-badge { background: #dbeafe; color: #1e40af; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
+    .status-badge { font-size: 0.75rem; font-weight: bold; padding: 3px 8px; border-radius: 4px; }
+    .status-upcoming { background: #fef08a; color: #854d0e; }
+    .status-overdue { background: #fecaca; color: #991b1b; }
+    .status-completed { background: #bbf7d0; color: #166534; }
+    .task-title { font-weight: bold; font-size: 1.05rem; margin-bottom: 4px; }
+    .task-desc { font-size: 0.85rem; color: #555; margin-bottom: 8px; }
+    .task-deadline { font-size: 0.8rem; color: #444; margin-bottom: 10px; }
+    .task-actions { display: flex; gap: 8px; }
+    .btn-small { padding: 6px 10px; font-size: 0.8rem; border: none; border-radius: 4px; cursor: pointer; color: white; }
+    .btn-done { background-color: #16a34a; }
+    .btn-delete { background-color: #dc2626; }
+    .empty-msg { text-align: center; color: #888; font-size: 0.9rem; margin-top: 20px; }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <div class="header">
-    <h1>Academic Task & Deadline Monitor</h1>
-    <p>Beleng National High School — Senior High School<br>(ICT • HUMSS • HE)</p>
+  <h1>Academic Task Monitor</h1>
+  <p class="subtitle">Beleng National High School - Senior High School</p>
+
+  <form id="taskForm">
+    <div class="form-group">
+      <label for="subject">Subject</label>
+      <input type="text" id="subject" placeholder="e.g., Practical Research 2, Empowerment Tech" required>
+    </div>
+    <div class="form-group">
+      <label for="title">Task Title / Requirement</label>
+      <input type="text" id="title" placeholder="e.g., Chapter 1-3 Draft" required>
+    </div>
+    <div class="form-group">
+      <label for="description">Task Description (Optional)</label>
+      <textarea id="description" rows="2" placeholder="Add notes or instructions..."></textarea>
+    </div>
+    <div class="form-group">
+      <label for="deadline">Deadline Date & Time</label>
+      <input type="datetime-local" id="deadline" required>
+    </div>
+    <button type="submit" class="btn-add">+ Add Academic Task</button>
+  </form>
+
+  <div class="filters">
+    <button class="filter-btn active" onclick="filterTasks('all', this)">All Tasks</button>
+    <button class="filter-btn" onclick="filterTasks('upcoming', this)">Upcoming</button>
+    <button class="filter-btn" onclick="filterTasks('overdue', this)">Overdue</button>
+    <button class="filter-btn" onclick="filterTasks('completed', this)">Completed</button>
   </div>
 
-  <div class="alert-bar">
-    <span id="alertStatusText">⚠️ Enable phone deadline alerts</span>
-    <button type="button" class="btn-primary" id="btnEnableAlerts">Enable Alerts</button>
-  </div>
-
-  <div class="stats-grid">
-    <div class="stat-card blue">
-      <div class="stat-number" id="totalCount">0</div>
-      <div class="stat-label">Total Tasks</div>
-    </div>
-    <div class="stat-card orange">
-      <div class="stat-number" id="upcomingCount">0</div>
-      <div class="stat-label">Upcoming</div>
-    </div>
-    <div class="stat-card red">
-      <div class="stat-number" id="overdueCount">0</div>
-      <div class="stat-label">Overdue</div>
-    </div>
-    <div class="stat-card green">
-      <div class="stat-number" id="completedCount">0</div>
-      <div class="stat-label">Completed</div>
-    </div>
-  </div>
-
-  <div class="card">
-    <h3>+ Add New Academic Task</h3>
-    <label for="taskTitle">Task Title *</label>
-    <input type="text" id="taskTitle" placeholder="e.g., Research Chapter 1-3 Defense" />
-
-    <div class="row-2">
-      <div>
-        <label for="taskSubject">Subject *</label>
-        <input type="text" id="taskSubject" placeholder="e.g., Practical Research 2" />
-      </div>
-      <div>
-        <label for="taskStrand">SHS Strand</label>
-        <select id="taskStrand">
-          <option value="ICT">ICT</option>
-          <option value="HUMSS">HUMSS</option>
-          <option value="HE">HE</option>
-        </select>
-      </div>
-    </div>
-
-    <label for="taskDesc">Task Description (Optional)</label>
-    <textarea id="taskDesc" placeholder="Enter instructions, materials needed, or reminders..."></textarea>
-
-    <label for="taskDeadline">Submission Deadline *</label>
-    <input type="datetime-local" id="taskDeadline" />
-
-    <button type="button" class="btn-primary" style="width: 100%;" id="btnSaveTask">Save Academic Task</button>
-    <div id="saveFeedback" class="status-msg">✓ Academic task saved!</div>
-  </div>
-
-  <div class="card">
-    <h3>Filter & Monitor Tasks</h3>
-    <div class="filter-bar">
-      <div>
-        <label for="filterSubject">Filter by Subject</label>
-        <select id="filterSubject">
-          <option value="ALL">All Subjects</option>
-        </select>
-      </div>
-      <div>
-        <label for="filterStatus">Filter by Status</label>
-        <select id="filterStatus">
-          <option value="ALL">All Tasks</option>
-          <option value="UPCOMING">Upcoming (Pending)</option>
-          <option value="OVERDUE">Overdue (Pending)</option>
-          <option value="COMPLETED">Completed</option>
-        </select>
-      </div>
-    </div>
-    <div id="taskList"></div>
-  </div>
+  <div id="taskList"></div>
 </div>
 
 <script>
-  document.addEventListener('DOMContentLoaded', function () {
-    let tasks = [];
-    try {
-      tasks = JSON.parse(localStorage.getItem('bnhs_shs_tasks')) || [];
-    } catch (e) {
-      tasks = [];
+  let tasks = JSON.parse(localStorage.getItem('shsTasks')) || [];
+  let currentFilter = 'all';
+
+  document.getElementById('taskForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const newTask = {
+      id: Date.now(),
+      subject: document.getElementById('subject').value.trim(),
+      title: document.getElementById('title').value.trim(),
+      description: document.getElementById('description').value.trim(),
+      deadline: document.getElementById('deadline').value,
+      completed: false
+    };
+    tasks.push(newTask);
+    saveAndRender();
+    this.reset();
+  });
+
+  function toggleComplete(id) {
+    tasks = tasks.map(task => task.id === id ? { ...task, completed: !task.completed } : task);
+    saveAndRender();
+  }
+
+  function deleteTask(id) {
+    if (confirm('Are you sure you want to delete this task?')) {
+      tasks = tasks.filter(task => task.id !== id);
+      saveAndRender();
+    }
+  }
+
+  function filterTasks(filter, btn) {
+    currentFilter = filter;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderTasks();
+  }
+
+  function saveAndRender() {
+    localStorage.setItem('shsTasks', JSON.stringify(tasks));
+    renderTasks();
+  }
+
+  function renderTasks() {
+    const taskList = document.getElementById('taskList');
+    taskList.innerHTML = '';
+    const now = new Date();
+
+    const filtered = tasks.filter(task => {
+      const isOverdue = !task.completed && new Date(task.deadline) < now;
+      if (currentFilter === 'completed') return task.completed;
+      if (currentFilter === 'overdue') return isOverdue;
+      if (currentFilter === 'upcoming') return !task.completed && !isOverdue;
+      return true;
+    });
+
+    filtered.sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
+
+    if (filtered.length === 0) {
+      taskList.innerHTML = '<p class="empty-msg">No academic tasks found in this category.</p>';
+      return;
     }
 
-    const btnSave = document.getElementById('btnSaveTask');
-    const btnAlerts = document.getElementById('btnEnableAlerts');
-    const filterSubject = document.getElementById('filterSubject');
-    const filterStatus = document.getElementById('filterStatus');
+    filtered.forEach(task => {
+      const deadlineDate = new Date(task.deadline);
+      const isOverdue = !task.completed && deadlineDate < now;
+      
+      let statusClass = 'status-upcoming';
+      let statusText = 'Pending / Upcoming';
+      let cardClass = 'task-card';
 
-    function saveData() {
-      try {
-        localStorage.setItem('bnhs_shs_tasks', JSON.stringify(tasks));
-      } catch (e) {
-        console.warn('LocalStorage unavailable');
-      }
-    }
-
-    function showMessage(msg) {
-      const fb = document.getElementById('saveFeedback');
-      fb.textContent = msg;
-      fb.style.display = 'block';
-      setTimeout(() => { fb.style.display = 'none'; }, 2500);
-    }
-
-    btnSave.addEventListener('click', function () {
-      const title = document.getElementById('taskTitle').value.trim();
-      const subject = document.getElementById('taskSubject').value.trim();
-      const strand = document.getElementById('taskStrand').value;
-      const description = document.getElementById('taskDesc').value.trim();
-      const deadline = document.getElementById('taskDeadline').value;
-
-      if (!title) {
-        alert('Please enter a Task Title.');
-        return;
-      }
-      if (!subject) {
-        alert('Please enter a Subject.');
-        return;
-      }
-      if (!deadline) {
-        alert('Please set a Submission Deadline.');
-        return;
+      if (task.completed) {
+        statusClass = 'status-completed';
+        statusText = 'Completed';
+        cardClass += ' completed';
+      } else if (isOverdue) {
+        statusClass = 'status-overdue';
+        statusText = 'Overdue';
+        cardClass += ' overdue';
       }
 
-      tasks.push({
-        id: Date.now(),
-        title: title,
-        subject: subject,
-        strand: strand,
-        description: description,
-        deadline: deadline,
-        completed: false
+      const formattedDate = deadlineDate.toLocaleString('en-PH', {
+        month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'
       });
 
-      document.getElementById('taskTitle').value = '';
-      document.getElementById('taskSubject').value = '';
-      document.getElementById('taskDesc').value = '';
-      document.getElementById('taskDeadline').value = '';
+      taskList.innerHTML += `
+        <div class="${cardClass}">
+          <div class="task-header">
+            <span class="subject-badge">${task.subject}</span>
+            <span class="status-badge ${statusClass}">${statusText}</span>
+          </div>
+          <div class="task-title">${task.title}</div>
+          ${task.description ? `<div class="task-desc">${task.description}</div>` : ''}
+          <div class="task-deadline"><strong>Deadline:</strong> ${formattedDate}</div>
+          <div class="task-actions">
+            <button class="btn-small btn-done" onclick="toggleComplete(${task.id})">
+              ${task.completed ? 'Mark as Pending' : 'Mark as Completed'}
+            </button>
+            <button class="btn-small btn-delete" onclick="deleteTask(${task.id})">Delete</button>
+          </div>
+        </div>
+      `;
+    });
+  }
 
-  
+  renderTasks();
+</script>
+
+</body>
+</html>
