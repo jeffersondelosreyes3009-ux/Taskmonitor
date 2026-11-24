@@ -13,10 +13,12 @@
     h1 { font-size: 1.4rem; color: #1e3a8a; text-align: center; margin-bottom: 5px; }
     p.subtitle { text-align: center; font-size: 0.85rem; color: #666; margin-bottom: 15px; }
     
-    .alert-bar { display: flex; gap: 8px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap; }
-    .btn-alert { padding: 8px 14px; border: none; border-radius: 20px; font-size: 0.85rem; font-weight: bold; cursor: pointer; background-color: #f59e0b; color: #fff; }
+    .alert-box { background: #eff6ff; border: 1px solid #bfdbfe; padding: 12px; border-radius: 8px; margin-bottom: 20px; text-align: center; }
+    .alert-bar { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+    .btn-alert { padding: 10px 16px; border: none; border-radius: 20px; font-size: 0.9rem; font-weight: bold; cursor: pointer; background-color: #f59e0b; color: #fff; }
     .btn-alert.enabled { background-color: #16a34a; }
-    .btn-test { padding: 8px 14px; border: 1px solid #64748b; border-radius: 20px; font-size: 0.8rem; cursor: pointer; background-color: #f8fafc; color: #334155; }
+    .btn-test { padding: 10px 16px; border: 1px solid #1e3a8a; border-radius: 20px; font-size: 0.85rem; font-weight: bold; cursor: pointer; background-color: #fff; color: #1e3a8a; }
+    #alertStatus { font-size: 0.8rem; color: #1e40af; margin-top: 8px; font-weight: 500; }
 
     .form-group { margin-bottom: 12px; }
     label { display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 4px; }
@@ -50,9 +52,12 @@
   <h1>Academic Task Monitor</h1>
   <p class="subtitle">Beleng National High School - Senior High School</p>
 
-  <div class="alert-bar">
-    <button id="enableAlertsBtn" class="btn-alert" onclick="requestAlertPermission()">🔔 Enable Alerts</button>
-    <button class="btn-test" onclick="sendSystemNotification('Test Alert', 'Gumagana na ang lockscreen at status bar notifications mo!')">Test Notification</button>
+  <div class="alert-box">
+    <div class="alert-bar">
+      <button type="button" id="enableAlertsBtn" class="btn-alert">🔔 Enable Alerts</button>
+      <button type="button" id="testAlertBtn" class="btn-test">Test Notification</button>
+    </div>
+    <p id="alertStatus">Status: Tap "Enable Alerts" to allow lockscreen reminders.</p>
   </div>
 
   <form id="taskForm">
@@ -76,10 +81,10 @@
   </form>
 
   <div class="filters">
-    <button class="filter-btn active" onclick="filterTasks('all', this)">All Tasks</button>
-    <button class="filter-btn" onclick="filterTasks('upcoming', this)">Upcoming</button>
-    <button class="filter-btn" onclick="filterTasks('overdue', this)">Overdue</button>
-    <button class="filter-btn" onclick="filterTasks('completed', this)">Completed</button>
+    <button type="button" class="filter-btn active" onclick="filterTasks('all', this)">All Tasks</button>
+    <button type="button" class="filter-btn" onclick="filterTasks('upcoming', this)">Upcoming</button>
+    <button type="button" class="filter-btn" onclick="filterTasks('overdue', this)">Overdue</button>
+    <button type="button" class="filter-btn" onclick="filterTasks('completed', this)">Completed</button>
   </div>
 
   <div id="taskList"></div>
@@ -90,44 +95,64 @@
   let currentFilter = 'all';
   let swRegistration = null;
 
-  // Register Service Worker para gumana sa Mobile Notification Bar & Lockscreen
+  const enableBtn = document.getElementById('enableAlertsBtn');
+  const testBtn = document.getElementById('testAlertBtn');
+  const statusText = document.getElementById('alertStatus');
+
+  // Register Service Worker
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js')
       .then(reg => {
         swRegistration = reg;
-        updateAlertButtonUI();
+        checkPermissionState();
       })
-      .catch(err => console.error('SW Error:', err));
+      .catch(err => {
+        statusText.textContent = 'SW Note: Running in standard mode.';
+      });
   }
 
-  function updateAlertButtonUI() {
-    const btn = document.getElementById('enableAlertsBtn');
-    if ('Notification' in window && Notification.permission === 'granted') {
-      btn.textContent = '✅ Alerts Enabled';
-      btn.classList.add('enabled');
-    }
-  }
-
-  async function requestAlertPermission() {
+  function checkPermissionState() {
     if (!('Notification' in window)) {
-      alert('Ang browser na ito ay hindi sumusuporta sa notifications. Subukan ang Google Chrome.');
+      statusText.textContent = '⚠️ Open this link in Google Chrome or Safari (not Messenger/FB browser).';
       return;
     }
-    const permission = await Notification.requestPermission();
-    if (permission === 'granted') {
-      updateAlertButtonUI();
-      sendSystemNotification('Alerts Activated!', 'Makakatanggap ka na ng paalala para sa iyong academic deadlines.');
-    } else {
-      alert('Na-block ang notification. I-allow ito sa Browser Settings > Site Settings > Notifications.');
+    if (Notification.permission === 'granted') {
+      enableBtn.textContent = '✅ Alerts Enabled';
+      enableBtn.classList.add('enabled');
+      statusText.textContent = 'Status: Lockscreen & status bar alerts are ACTIVE.';
+    } else if (Notification.permission === 'denied') {
+      statusText.textContent = '❌ Blocked: Allow notifications in your browser Site Settings.';
     }
   }
 
-  function sendSystemNotification(title, body) {
-    if (!('Notification' in window) || Notification.permission !== 'granted') {
-      alert('Pindutin muna ang "Enable Alerts" button sa taas.');
+  enableBtn.addEventListener('click', async function() {
+    if (!('Notification' in window)) {
+      alert('Hindi suportado ang notifications sa browser na ito. I-open ang link sa Google Chrome o Safari.');
       return;
     }
 
+    try {
+      const permission = await Notification.requestPermission();
+      checkPermissionState();
+      if (permission === 'granted') {
+        triggerNotification('Alerts Enabled!', 'Makakatanggap ka na ng paalala sa notification bar at lockscreen.');
+      } else {
+        alert('Na-deny ang permission. Pumunta sa Chrome Settings > Site Settings > Notifications para i-allow.');
+      }
+    } catch (error) {
+      alert('Error: ' + error.message);
+    }
+  });
+
+  testBtn.addEventListener('click', function() {
+    if (!('Notification' in window) || Notification.permission !== 'granted') {
+      alert('Pindutin muna ang "Enable Alerts" button at piliin ang Allow.');
+      return;
+    }
+    triggerNotification('Test Deadline Alert', 'Gumagana na ang notification sa status bar at lockscreen mo!');
+  });
+
+  function triggerNotification(title, body) {
     const options = {
       body: body,
       icon: 'https://flaticon.com',
@@ -143,7 +168,7 @@
     }
   }
 
-  // Mag-check ng deadlines bawat 30 segundo
+  // Check deadlines every 15 seconds
   setInterval(() => {
     const now = new Date();
     let updated = false;
@@ -153,9 +178,8 @@
       const deadline = new Date(task.deadline);
       const diffMinutes = (deadline - now) / (1000 * 60);
 
-      // Mag-notify kapag 60 mins o mas mababa na lang bago ang deadline
       if (diffMinutes > 0 && diffMinutes <= 60 && !task.notifiedSoon) {
-        sendSystemNotification(
+        triggerNotification(
           `Malapit na ang Deadline: ${task.subject}`,
           `${task.title} ay due na sa loob ng ${Math.ceil(diffMinutes)} minuto!`
         );
@@ -163,9 +187,8 @@
         updated = true;
       }
 
-      // Mag-notify kapag due na o overdue na
       if (diffMinutes <= 0 && !task.notifiedDue) {
-        sendSystemNotification(
+        triggerNotification(
           `DEADLINE NA: ${task.subject}`,
           `Ang task na "${task.title}" ay due na ngayon!`
         );
@@ -179,7 +202,7 @@
       localStorage.setItem('shsTasks', JSON.stringify(tasks));
       renderTasks();
     }
-  }, 30000);
+  }, 15000);
 
   document.getElementById('taskForm').addEventListener('submit', function(e) {
     e.preventDefault();
@@ -199,36 +222,4 @@
   });
 
   function toggleComplete(id) {
-    tasks = tasks.map(task => task.id === id ? { ...task, completed: !task.completed } : task);
-    saveAndRender();
-  }
-
-  function deleteTask(id) {
-    if (confirm('Are you sure you want to delete this task?')) {
-      tasks = tasks.filter(task => task.id !== id);
-      saveAndRender();
-    }
-  }
-
-  function filterTasks(filter, btn) {
-    currentFilter = filter;
-    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    renderTasks();
-  }
-
-  function saveAndRender() {
-    localStorage.setItem('shsTasks', JSON.stringify(tasks));
-    renderTasks();
-  }
-
-  function renderTasks() {
-    const taskList = document.getElementById('taskList');
-    taskList.innerHTML = '';
-    const now = new Date();
-
-    const filtered = tasks.filter(task => {
-      const isOverdue = !task.completed && new Date(task.deadline) < now;
-      if (currentFilter === 'completed') return task.completed;
-      if (currentFilter === 'overdue') return isOverdue;
   
