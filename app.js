@@ -8,12 +8,14 @@ const filterBtns = document.querySelectorAll('.filter-btn');
 const notifyBtn = document.getElementById('notifyBtn');
 const installBtn = document.getElementById('installBtn');
 
+// 1. Register Service Worker
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js')
     .then(() => console.log('Service Worker Registered'))
     .catch(err => console.log('SW Error:', err));
 }
 
+// 2. Install App Prompt
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
@@ -31,25 +33,41 @@ installBtn.addEventListener('click', async () => {
   }
 });
 
-notifyBtn.addEventListener('click', () => {
+// 3. Notification Permission Button (Updated with Troubleshooting Alerts)
+notifyBtn.addEventListener('click', async () => {
   if (!('Notification' in window)) {
-    alert('Hindi supported ang notifications sa browser na ito.');
+    alert('Hindi supported ng browser na ito ang notifications. Subukang i-Add to Home Screen muna o gumamit ng Google Chrome.');
     return;
   }
-  Notification.requestPermission().then(permission => {
+
+  if (Notification.permission === 'denied') {
+    alert('Naka-BLOCK ang notifications sa browser settings mo. I-tap ang lock/settings icon sa tabi ng website link sa taas at i-allow ang Notifications.');
+    return;
+  }
+
+  try {
+    const permission = await Notification.requestPermission();
     if (permission === 'granted') {
       notifyBtn.textContent = '✅ Alerts Enabled';
       notifyBtn.style.background = '#10b981';
       notifyBtn.style.color = 'white';
-      new Notification('Academic Task Monitor', {
-        body: 'Naka-on na ang deadline alerts! Makakatanggap ka ng notification dito at sa lockscreen.'
-      });
+
+      if ('serviceWorker' in navigator) {
+        const reg = await navigator.serviceWorker.ready;
+        reg.showNotification('Academic Task Monitor', {
+          body: 'Naka-on na ang deadline alerts! Lalabas na ito sa notification bar at lockscreen.',
+          vibrate: [200, 100, 200]
+        });
+      }
     } else {
-      alert('I-allow ang notifications sa browser settings para gumana ang deadline alerts.');
+      alert('Hindi na-allow ang notification. Subukan ulit o i-check ang browser settings.');
     }
-  });
+  } catch (error) {
+    alert('Error sa pag-enable ng alert: ' + error.message);
+  }
 });
 
+// 4. Add New Task
 taskForm.addEventListener('submit', (e) => {
   e.preventDefault();
   const newTask = {
@@ -67,6 +85,7 @@ taskForm.addEventListener('submit', (e) => {
   taskForm.reset();
 });
 
+// 5. Save and Render Tasks
 function saveAndRender() {
   localStorage.setItem('shs_tasks', JSON.stringify(tasks));
   renderTasks();
@@ -152,6 +171,7 @@ filterBtns.forEach(btn => {
   });
 });
 
+// 6. Deadline Checker (Every 10 seconds)
 setInterval(() => {
   const now = new Date();
   let updated = false;
@@ -166,10 +186,10 @@ setInterval(() => {
   });
 
   if (updated) saveAndRender();
-}, 15000);
+}, 10000);
 
 function sendSystemNotification(task) {
-  if (Notification.permission === 'granted') {
+  if (Notification.permission === 'granted' && 'serviceWorker' in navigator) {
     navigator.serviceWorker.ready.then(reg => {
       reg.showNotification(`🚨 DEADLINE NA: ${task.subject}`, {
         body: `Task: ${task.title}\nTap to view your task monitor.`,
@@ -181,4 +201,4 @@ function sendSystemNotification(task) {
 }
 
 renderTasks();
-    
+            
