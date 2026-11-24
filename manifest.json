@@ -1,9 +1,9 @@
 {
-  "name": "Academic Task & Deadline Monitoring System",
+  "name": "Academic Task Monitor",
   "short_name": "TaskMonitor",
-  "start_url": "./index.html",
+  "start_url": "index.html",
   "display": "standalone",
-  "background_color": "#f8fafc",
+  "background_color": "#ffffff",
   "theme_color": "#2563eb",
   "icons": [
     {
