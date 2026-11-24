@@ -7,7 +7,9 @@ self.addEventListener('activate', (e) => {
 });
 
 self.addEventListener('fetch', (e) => {
-  e.respondWith(fetch(e.request).catch(() => new Response('Offline')));
+  e.respondWith(
+    fetch(e.request).catch(() => caches.match(e.request))
+  );
 });
 
 self.addEventListener('notificationclick', (event) => {
